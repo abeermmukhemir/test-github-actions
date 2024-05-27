@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hello-app"
+authors = [
+    {name = "Abeer Mukhemir"},
+]
+description = "A simple flask web app"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "flask",
+]
+dynamic = ["version"]
+
+[project.scripts]
+hello-app = "hello.app:main"
+
+[project.urls]
+Home-page = "https://github.com/abeermmukhemir/test-github-actions/src/hello-app"
+
+[tool.setuptools.dynamic]
+version = {attr = "hello.app_consts.APP_VERSION"}
