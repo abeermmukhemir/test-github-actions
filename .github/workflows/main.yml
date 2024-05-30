@@ -5,7 +5,6 @@ on:
     branches:
       - 'add-workflow'
 env:
-  PYTHON_VENV: ${{ github.workspace }}/.venv
   APP_SRC_DIR: ${{ github.workspace }}/src/hello-app
 jobs:
   build:
@@ -31,7 +30,7 @@ jobs:
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
-          flake8 ${{env.APP_SRC_DIR}} --count --show-source --max-line-length=80 --statistics
+          pipenv run flake8 ${{env.APP_SRC_DIR}} --count --show-source --max-line-length=80 --statistics
       - name: Build pacakage
         run: |
           pipenv run python -m build ${{env.APP_SRC_DIR}}
