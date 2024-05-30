@@ -20,6 +20,7 @@ jobs:
         with:
           python-version: "3.10"
           cache: 'pipenv'
+          cache-dependency-path: "${{ github.workspace }}/Pipfile.lock"
       - name: Install main dependencies
         run: |
           python3 -m pip install pipenv
