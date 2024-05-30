@@ -19,8 +19,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-          cache: 'pipenv'
-          cache-dependency-path: "${{ github.workspace }}/Pipfile.lock"
       - name: Install main dependencies
         run: |
           python3 -m pip install pipenv
@@ -36,8 +34,8 @@ jobs:
           flake8 ${{env.APP_SRC_DIR}} --count --show-source --max-line-length=80 --statistics
       - name: Build pacakage
         run: |
-          which python
-          python -m build ${{env.APP_SRC_DIR}}
+          pipenv run python -m build ${{env.APP_SRC_DIR}}
+          pipenv run pip list
       - name: List created packages
         run: |
           ls ${{env.APP_SRC_DIR}}/dist
