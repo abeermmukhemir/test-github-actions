@@ -19,32 +19,31 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: "3.10"
+          cache: 'pipenv'
       - name: Install main dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install virtualenv
+          python3 -m pip install pipenv
       - name: Setup Python virtual environment
         run: |
-          python -m venv ${{env.PYTHON_VENV}}
-          source ${{env.PYTHON_VENV}}/bin/activate
+          pipenv install
       - name: Install job specific dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install flake8 build
+          pipenv install flake8 build
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
           flake8 ${{env.APP_SRC_DIR}} --count --show-source --max-line-length=80 --statistics
       - name: Build pacakage
         run: |
+          which python
           python -m build ${{env.APP_SRC_DIR}}
       - name: List created packages
         run: |
           ls ${{env.APP_SRC_DIR}}/dist
       - name: Cleanup environment
         run: |
-          deactivate
           rm -rf ${{env.APP_SRC_DIR}}/dist
-          rm -rf ${{env.PYTHON_VENV}}
+          pipenv uninstall --all
+          pipenv --rm
       - run: |
           echo "Job ${{github.job}} finished with status ${{ job.status }}."
