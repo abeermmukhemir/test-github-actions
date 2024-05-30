@@ -1,5 +1,5 @@
 name: build-pipeline
-run-name: Run ${{github.run_number}} on commit ${{github.ref_name}}, user ${{ github.actor }}
+run-name: Run ${{github.run_number}} on ref ${{github.ref_name}}, user ${{ github.actor }}
 on: 
   push:
     branches:
@@ -22,7 +22,7 @@ jobs:
       - name: Install main dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install --upgrade venv
+          pip install venv
       - name: Setup Python virtual environment
         run: |
           python -m venv ${{env.PYTHON_VENV}}
