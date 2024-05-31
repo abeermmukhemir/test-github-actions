@@ -100,10 +100,14 @@ jobs:
     - name: Install app package into pipenv
       run: |
         pipenv install $ARTIFACTS_DIR/*.whl
-    - name: Run Pytest
+    - name: Run pytest and coverage
       run: |
         mkdir $PYTEST_ROOT_DIR
-        pipenv run pytest --cache-clear --rootdir $PYTEST_ROOT_DIR $APP_TEST_DIR
+        pipenv run coverage run --branch --source=$importable_name -m \
+          pytest -v --cache-clear --rootdir $PYTEST_ROOT_DIR $APP_TEST_DIR
+        pipenv run coverage report
+      env:
+        importable_name: hello
     - name: Cleanup environment
       run: |
         rm -rf $ARTIFACTS_DIR $PYTEST_ROOT_DIR
