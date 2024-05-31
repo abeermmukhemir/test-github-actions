@@ -88,7 +88,7 @@ jobs:
         pipenv install
     - name: Install job specific dependencies
       run: |
-        pipenv install pytest
+        pipenv install pytest coverage
     - name: Download artifacts to test
       uses: actions/download-artifact@v4
       with:
@@ -97,13 +97,16 @@ jobs:
     - name: List downloaded artifacts
       run: |
         ls -R $ARTIFACTS_DIR
+    - name: Install app package into pipenv
+      run: |
+        pipenv install $ARTIFACTS_DIR/*.whl
     - name: Run Pytest
       run: |
         mkdir $PYTEST_ROOT_DIR
-        pipenv run pytest --cache-clear --full-trace --rootdir $PYTEST_ROOT_DIR $APP_TEST_DIR
+        pipenv run pytest --cache-clear --rootdir $PYTEST_ROOT_DIR $APP_TEST_DIR
     - name: Cleanup environment
       run: |
-        rm -rf $ARTIFACTS_DIR
+        rm -rf $ARTIFACTS_DIR $PYTEST_ROOT_DIR
         pipenv uninstall --all --clear
         pipenv --rm
         rm -f Pipfile*
