@@ -1,11 +1,10 @@
 name: build-pipeline
 run-name: Run ${{github.run_number}} on ref ${{github.ref_name}}, user ${{ github.actor }}
 on: 
-  push:
-    branches:
-      - 'add-workflow'
+  push
 env:
   APP_NAME: hello-app
+  PACKAGE_NAME_PREFIX_PATTERN: hello_app-[0-9].[0-9]
 permissions:
   contents: read
 jobs:
@@ -48,8 +47,8 @@ jobs:
         with:
           name: app-packages
           path: |
-            ${{env.BUILD_DIST_DIR}}/*.whl
-            ${{env.BUILD_DIST_DIR}}/*.tar.gz
+            ${{env.BUILD_DIST_DIR}}/${{env.PACKAGE_NAME_PREFIX_PATTERN}}*.whl
+            ${{env.BUILD_DIST_DIR}}/${{env.PACKAGE_NAME_PREFIX_PATTERN}}*.tar.gz
           if-no-files-found: error
           retention-days: 1
           overwrite: true
@@ -99,7 +98,7 @@ jobs:
         ls -R $ARTIFACTS_DIR
     - name: Install app package into pipenv
       run: |
-        pipenv install $ARTIFACTS_DIR/*.whl
+        pipenv install $ARTIFACTS_DIR/$PACKAGE_NAME_PREFIX_PATTERN*.whl
     - name: Run pytest and coverage
       run: |
         mkdir $PYTEST_ROOT_DIR
