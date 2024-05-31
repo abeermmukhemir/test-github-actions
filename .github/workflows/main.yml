@@ -99,6 +99,7 @@ jobs:
         ls -R $ARTIFACTS_DIR
     - name: Run Pytest
       run: |
+        mkdir $PYTEST_ROOT_DIR
         pipenv run pytest --cache-clear --full-trace --rootdir $PYTEST_ROOT_DIR $APP_TEST_DIR
     - name: Cleanup environment
       run: |
