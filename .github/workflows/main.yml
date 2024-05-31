@@ -1,18 +1,117 @@
-name: GitHub Actions Demo
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
-on: [push]
+name: build-pipeline
+run-name: Run ${{github.run_number}} on ref ${{github.ref_name}}, user ${{ github.actor }}
+on: 
+  push
+env:
+  APP_NAME: hello-app
+  PACKAGE_NAME_PREFIX_PATTERN: hello_app-[0-9].[0-9]
+permissions:
+  contents: read
 jobs:
-  Explore-GitHub-Actions:
+  build:
     runs-on: ubuntu-latest
+    env:
+      APP_SRC_DIR: ${{ github.workspace }}/src/$APP_NAME
+      BUILD_DIST_DIR: ${{ github.workspace }}/build-artifacts
     steps:
-      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
-      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - run: |
+          echo "Starting Job ${{github.job}}"
       - name: Check out repository code
         uses: actions/checkout@v4
-      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
-      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
-      - name: List files in the repository
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install main dependencies
         run: |
-          ls ${{ github.workspace }}
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+          python3 -m pip install --upgrade pip
+          python3 -m pip install pipenv
+      - name: Setup Python virtual environment
+        run: |
+          pipenv install
+      - name: Install job specific dependencies
+        run: |
+          pipenv install flake8 build
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          pipenv run flake8 $APP_SRC_DIR --count --show-source --max-line-length=80 --statistics
+      - name: Build pacakage
+        run: |
+          pipenv run python -m build -o $BUILD_DIST_DIR $APP_SRC_DIR
+      - name: List created packages
+        run: |
+          ls $BUILD_DIST_DIR
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-packages
+          path: |
+            ${{env.BUILD_DIST_DIR}}/${{env.PACKAGE_NAME_PREFIX_PATTERN}}*.whl
+            ${{env.BUILD_DIST_DIR}}/${{env.PACKAGE_NAME_PREFIX_PATTERN}}*.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: true
+      - name: Cleanup environment
+        run: |
+          rm -rf $BUILD_DIST_DIR
+          pipenv uninstall --all --clear
+          pipenv --rm
+          rm -f Pipfile*
+      - run: |
+          echo "Job ${{github.job}} finished with status ${{ job.status }}."
+
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+      APP_TEST_DIR: ${{ github.workspace }}/src/pytest
+      ARTIFACTS_DIR: ${{ github.workspace }}/artifacts
+      PYTEST_ROOT_DIR: ${{ github.workspace }}/pytest-root
+    steps:
+    - run: |
+        echo "Starting Job ${{github.job}}"
+    - name: Check out repository code
+      uses: actions/checkout@v4
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+    - name: Install main dependencies
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install pipenv
+    - name: Setup Python virtual environment
+      run: |
+        pipenv install
+    - name: Install job specific dependencies
+      run: |
+        pipenv install pytest coverage
+    - name: Download artifacts to test
+      uses: actions/download-artifact@v4
+      with:
+        name: app-packages
+        path: ${{env.ARTIFACTS_DIR}}
+    - name: List downloaded artifacts
+      run: |
+        ls -R $ARTIFACTS_DIR
+    - name: Install app package into pipenv
+      run: |
+        pipenv install $ARTIFACTS_DIR/$PACKAGE_NAME_PREFIX_PATTERN*.whl
+    - name: Run pytest and coverage
+      run: |
+        mkdir $PYTEST_ROOT_DIR
+        pipenv run coverage run --branch --source=$importable_name -m \
+          pytest -v --cache-clear --rootdir $PYTEST_ROOT_DIR $APP_TEST_DIR
+        pipenv run coverage report
+      env:
+        importable_name: hello
+    - name: Cleanup environment
+      run: |
+        rm -rf $ARTIFACTS_DIR $PYTEST_ROOT_DIR
+        pipenv uninstall --all --clear
+        pipenv --rm
+        rm -f Pipfile*
+    - run: |
+        echo "Job ${{github.job}} finished with status ${{ job.status }}."

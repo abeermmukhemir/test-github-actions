@@ -74,7 +74,7 @@ class Server(object):
     """A wrapper for Flask() object
     """
 
-    def __init__(self, host: str, port: str) -> None:
+    def __init__(self, host: str = "127.0.0.1", port: str = "5000") -> None:
         """Initialize the server
 
         Args:
@@ -85,6 +85,9 @@ class Server(object):
         self._port = port
 
         self._flask_app = Flask(APP_NAME)
+
+    def get_app_instance(self) -> Flask:
+        return self._flask_app
 
     def register_routes(self) -> None:
         """Register the API routes
