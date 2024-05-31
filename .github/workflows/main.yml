@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       APP_SRC_DIR: ${{ github.workspace }}/src/$APP_NAME
-      BUILD_DIST_DIR: ${{ github.workspace }}/build-artifacts/
+      BUILD_DIST_DIR: ${{ github.workspace }}/build-artifacts
     steps:
       - run: |
           echo "Starting Job ${{github.job}}"
@@ -43,7 +43,8 @@ jobs:
       - name: List created packages
         run: |
           ls $BUILD_DIST_DIR
-      - uses: actions/upload-artifact@v4
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
         with:
           name: app-packages
           path: |
@@ -60,3 +61,50 @@ jobs:
           rm -f Pipfile*
       - run: |
           echo "Job ${{github.job}} finished with status ${{ job.status }}."
+
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+      APP_TEST_DIR: ${{ github.workspace }}/src/pytest
+      ARTIFACTS_DIR: ${{ github.workspace }}/artifacts
+      PYTEST_ROOT_DIR: ${{ github.workspace }}/pytest-root
+    steps:
+    - run: |
+        echo "Starting Job ${{github.job}}"
+    - name: Check out repository code
+      uses: actions/checkout@v4
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+    - name: Install main dependencies
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install pipenv
+    - name: Setup Python virtual environment
+      run: |
+        pipenv install
+    - name: Install job specific dependencies
+      run: |
+        pipenv install pytest
+    - name: Download artifacts to test
+      uses: actions/download-artifact@v4
+      with:
+        name: app-packages
+        path: ${{env.ARTIFACTS_DIR}}
+    - name: List downloaded artifacts
+      run: |
+        ls -R $ARTIFACTS_DIR
+    - name: Run Pytest
+      run: |
+        pipenv run pytest --cache-clear --full-trace --rootdir $PYTEST_ROOT_DIR $APP_TEST_DIR
+    - name: Cleanup environment
+      run: |
+        rm -rf $ARTIFACTS_DIR
+        pipenv uninstall --all --clear
+        pipenv --rm
+        rm -f Pipfile*
+    - run: |
+        echo "Job ${{github.job}} finished with status ${{ job.status }}."
