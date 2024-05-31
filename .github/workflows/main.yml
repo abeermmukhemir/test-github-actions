@@ -5,10 +5,15 @@ on:
     branches:
       - 'add-workflow'
 env:
-  APP_SRC_DIR: ${{ github.workspace }}/src/hello-app
+  APP_NAME: hello-app
+permissions:
+  contents: read
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      APP_SRC_DIR: ${{ github.workspace }}/src/$APP_NAME
+      BUILD_DIST_DIR: ${{ github.workspace }}/build-artifacts/
     steps:
       - run: |
           echo "Starting Job ${{github.job}}"
@@ -20,6 +25,7 @@ jobs:
           python-version: "3.10"
       - name: Install main dependencies
         run: |
+          python3 -m pip install --upgrade pip
           python3 -m pip install pipenv
       - name: Setup Python virtual environment
         run: |
@@ -30,18 +36,27 @@ jobs:
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
-          pipenv run flake8 ${{env.APP_SRC_DIR}} --count --show-source --max-line-length=80 --statistics
+          pipenv run flake8 $APP_SRC_DIR --count --show-source --max-line-length=80 --statistics
       - name: Build pacakage
         run: |
-          pipenv run python -m build ${{env.APP_SRC_DIR}}
-          pipenv run pip list
+          pipenv run python -m build -o $BUILD_DIST_DIR $APP_SRC_DIR
       - name: List created packages
         run: |
-          ls ${{env.APP_SRC_DIR}}/dist
+          ls $BUILD_DIST_DIR
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-packages
+          path: |
+            $BUILD_DIST_DIR/*.whl
+            $BUILD_DIST_DIR/*.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: true
       - name: Cleanup environment
         run: |
-          rm -rf ${{env.APP_SRC_DIR}}/dist
-          pipenv uninstall --all
+          rm -rf $BUILD_DIST_DIR
+          pipenv uninstall --all --clear
           pipenv --rm
+          rm -f Pipfile*
       - run: |
           echo "Job ${{github.job}} finished with status ${{ job.status }}."
