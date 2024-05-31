@@ -47,8 +47,8 @@ jobs:
         with:
           name: app-packages
           path: |
-            $BUILD_DIST_DIR/*.whl
-            $BUILD_DIST_DIR/*.tar.gz
+            ${{env.BUILD_DIST_DIR}}/*.whl
+            ${{env.BUILD_DIST_DIR}}/*.tar.gz
           if-no-files-found: error
           retention-days: 1
           overwrite: true
