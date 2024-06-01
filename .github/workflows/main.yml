@@ -13,7 +13,6 @@ jobs:
     env:
       APP_SRC_DIR: ${{ github.workspace }}/src/$APP_NAME
       BUILD_DIST_DIR: ${{ github.workspace }}/build-artifacts
-      PACKAGE_COMMON_PATTERN: $BUILD_DIST_DIR/$PACKAGE_PREFIX_PATTERN
     steps:
       - run: |
           echo "Starting Job ${{github.job}}"
@@ -28,6 +27,8 @@ jobs:
           package-name-patterns: |
             ${{ env.PACKAGE_COMMON_PATTERN }}*.whl
             ${{ env.PACKAGE_COMMON_PATTERN }}*.tar.gz
+        env:
+          PACKAGE_COMMON_PATTERN: ${{ env.BUILD_DIST_DIR }}/${{ env.PACKAGE_PREFIX_PATTERN }}
       - name: Cleanup environment
         uses: ./.github/actions/cleanup-env
         with:
