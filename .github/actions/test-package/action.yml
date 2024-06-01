@@ -113,10 +113,10 @@ runs:
       shell: bash
     - name: Fail if there is no matching package in artifacts dir
       run: |
-        if ! ls ${{ inputs.artifacts-dir }}/${{ inputs.package-name-pattern }} ; \
+        if ! ls ${{ inputs.artifacts-dir }}/${{ inputs.package-name-pattern }} ;
         then echo \
-          "ERROR: no matching ${{ inputs.package-name-pattern }} package in dir ${{ inputs.artifacts-dir }}" 1>&2 ; \
-          exit 1 ; \
+          "ERROR: no matching ${{ inputs.package-name-pattern }} package in dir ${{ inputs.artifacts-dir }}" 1>&2 ;
+          exit 1 ;
         fi
       shell: bash
     # if we're here, then inputs.package-name-pattern is available
