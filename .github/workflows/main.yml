@@ -23,7 +23,7 @@ jobs:
         uses: ./.github/actions/setup-env
         with:
           setup-python: true
-          python-version: 3.10
+          python-version: '3.10'
           use-pipenv: true
           python-dependencies: |
             flake8
