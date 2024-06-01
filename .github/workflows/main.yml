@@ -25,14 +25,17 @@ jobs:
           setup-python: true
           python-version: '3.10'
           use-pipenv: true
-          python-dependencies: |
+          python-dependencies:
             flake8
             build
       - name: Debug outputs from ./.github/actions/setup-env
         run: |
-          echo $setup-outputs
-        env:
-          setup-outputs: ${{ steps.use-setup-action.outputs }}
+          echo ${{ steps.use-setup-action.outputs.*.value }}
+          # echo ${{ steps.use-setup-action.outputs.python-version }}
+          # echo ${{ steps.use-setup-action.outputs.global-python-path }}
+          # echo ${{ steps.use-setup-action.outputs.pipenv-python-path }}
+          # echo ${{ steps.use-setup-action.outputs.pipenv-venv-path }}
+          # echo ${{ steps.use-setup-action.outputs.pipenv-project-path }}
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
