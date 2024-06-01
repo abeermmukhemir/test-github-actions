@@ -87,18 +87,21 @@ runs:
       name: Upgrade pip
       run: |
         $python-exec -m pip install --upgrade pip
+      shell: bash
       env:
         python-exec:  ${{ steps.setup-python-action.outputs.python-path }}
     - if: ${{ inputs.python-dependencies != '' && inputs.use-pipenv == 'false' }}
       name: Install Python dependencies with pip
       run: |
         $python-exec -m pip install ${{ inputs.python-dependencies }}
+      shell: bash
       env:
         python-exec:  ${{ steps.setup-python-action.outputs.python-path }}
     - if: ${{ inputs.use-pipenv == 'true' }}
       name: Install pipenv
       run: |
         $python-exec -m pip install pipenv
+      shell: bash
       env:
         python-exec:  ${{ steps.setup-python-action.outputs.python-path }}
     - if: ${{ inputs.python-dependencies != '' && inputs.use-pipenv == 'true' }}
@@ -109,7 +112,9 @@ runs:
         echo "pipenv-python-path=$(pipenv --py)" >> $GITHUB_OUTPUT
         echo "pipenv-venv-path=$(pipenv --venv)" >> $GITHUB_OUTPUT
         echo "pipenv-project-path=$(pipenv --where)" >> $GITHUB_OUTPUT
+      shell: bash
     - if: ${{ inputs.use-pipenv == 'true' }}
       name: Install Python dependencies with pipenv
       run: |
         pipenv install ${{ inputs.python-dependencies }}
+      shell: bash
