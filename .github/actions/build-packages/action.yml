@@ -1,0 +1,97 @@
+name: build-packages
+description: |
+  Build Python app.
+  Will do:
+    - setup needed environment for build
+    - lint the src code with flake8
+    - build src code to generate .whl and .tar.gz packages
+    - upload generated packages to artifact for future use
+  depends on  ./.github/actions/setup-env
+inputs:
+  app-src-dir:
+    description: |
+      'Source code directory for the application'
+    required: false
+    default: '.'
+  build-output-dir:
+    description: |
+      'Output directory for the build'
+    required: false
+    default: './build'
+  package-name-patterns:
+    description: |
+      'Output packages patterns, this is relative to current working directory
+      and will be used to upload matched packages to artifacts.
+      for examples:
+        package-name-pattern: |
+          **/app-*.whl
+          dist/app-[0-9].[0-9]*.tar.gz
+      the default is to upload all contents of build-output-dir
+      '
+    required: false
+    default: ''
+  artifact-name:
+    description: |
+      'artifact name for actions/upload-artifact
+      default: app-packages'
+    required: false
+    default: app-packages
+  retention-days:
+    description: |
+      'retention days for uploaded artifact'
+    required: false
+    default: 1
+outputs:
+  # useful in case downloading the artifact is done in different
+  # jobs/workflows without the need for hard coding the value everywhere
+  artifact-name:
+    description: |
+      'artifact name for actions/upload-artifact
+      if uploading the artifact is successful, this will be same value as 
+      inputs.artifact-name, otherwise the upload had failed'
+  value: ${{ steps.get-artifact-name.outputs.artifact-name }}
+runs:
+	using: 'composite'
+	steps:
+		- name: Setup environment
+			id: use-setup-action
+			uses: ./.github/actions/setup-env
+			with:
+				setup-python: true
+				python-version: '3.10'
+				use-pipenv: true
+				python-dependencies:
+					flake8
+					build
+		- name: Debug outputs from ./.github/actions/setup-env
+			run: |
+				echo '${{ toJson(steps.use-setup-action.outputs) }}'
+      shell: bash
+		- name: Lint with flake8
+			run: |
+				# stop the build if there are Python syntax errors or undefined names
+				pipenv run flake8 ${{ inputs.app-src-dir }} --count --show-source --max-line-length=80 --statistics
+      shell: bash
+		- name: Build package
+			run: |
+				pipenv run python -m build -o ${{ inputs.build-output-dir }} ${{ inputs.app-src-dir }}
+      shell: bash
+		- name: List created packages
+			run: |
+				ls ${{ inputs.build-output-dir }}
+      shell: bash
+		- name: Upload build artifacts
+			uses: actions/upload-artifact@v4
+			with:
+				name: ${{ inputs.artifact-name }}
+				path: ${{ env.path_patterns }}
+				if-no-files-found: error
+				retention-days: ${{ inputs.retention-days }}
+				overwrite: true
+      env:
+        path_patterns: ${{ inputs.package-name-patterns != '' && inputs.package-name-patterns || inputs.build-output-dir }}
+    - if: ${{ success() }}
+      id: get-artifact-name
+      run: |
+        echo "artifact-name=${{ inputs.artifact-name }}" >> $GITHUB_OUTPUT
+      shell: bash
