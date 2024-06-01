@@ -16,27 +16,27 @@ jobs:
     steps:
       - run: |
           echo "Starting Job ${{github.job}}"
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v5
+      - name: Setup environment
+        id: use-setup-action
+        uses: ./.github/actions/setup-env
         with:
-          python-version: "3.10"
-      - name: Install main dependencies
+          checkout-code: true
+          setup-python: true
+          python-version: 3.10
+          use-pipenv: true
+          python-dependencies: |
+            flake8
+            build
+      - name: Debug outputs from ./.github/actions/setup-env
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install pipenv
-      - name: Setup Python virtual environment
-        run: |
-          pipenv install
-      - name: Install job specific dependencies
-        run: |
-          pipenv install flake8 build
+          echo $setup-outputs
+        env:
+          setup-outputs: ${{ steps.use-setup-action.outputs }}
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
           pipenv run flake8 $APP_SRC_DIR --count --show-source --max-line-length=80 --statistics
-      - name: Build pacakage
+      - name: Build package
         run: |
           pipenv run python -m build -o $BUILD_DIST_DIR $APP_SRC_DIR
       - name: List created packages
