@@ -53,6 +53,11 @@ outputs:
 runs:
 	using: 'composite'
 	steps:
+    - name: debug working dir
+      run: |
+        echo "pwd=$(pwd)"
+        echo "action_path=${{ github.action_path }}"
+      shell: bash
 		- name: Setup environment
 			id: use-setup-action
 			uses: ./.github/actions/setup-env
