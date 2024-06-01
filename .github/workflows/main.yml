@@ -63,7 +63,7 @@ jobs:
         pytest-root-dir: ${{ env.PYTEST_ROOT_DIR }}
         artifacts-dir: ${{ env.ARTIFACTS_DIR }}
         package-name-pattern: |
-          "${{ env.PACKAGE_PREFIX_PATTERN }}${{ matrix.package_pattern }}"
+          ${{ env.PACKAGE_PREFIX_PATTERN }}${{ matrix.package_pattern }}
         artifact-name: ${{ needs.build.outputs.artifact-name }}
         coverage: true
         coverage-importable-name: hello
