@@ -30,7 +30,7 @@ jobs:
             build
       - name: Debug outputs from ./.github/actions/setup-env
         run: |
-          echo ${{ toJson(steps.use-setup-action.outputs) }}
+          echo '${{ toJson(steps.use-setup-action.outputs) }}'
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
