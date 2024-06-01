@@ -1,6 +1,6 @@
 name: build-pipeline
 run-name: Run ${{github.run_number}} on ref ${{github.ref_name}}, user ${{ github.actor }}
-on: 
+on:
   push
 env:
   APP_NAME: hello-app
@@ -62,7 +62,7 @@ jobs:
         app-test-dir: ${{ env.APP_TEST_DIR }}
         pytest-root-dir: ${{ env.PYTEST_ROOT_DIR }}
         artifacts-dir: ${{ env.ARTIFACTS_DIR }}
-        package-name-pattern: |
+        package-name-pattern:
           ${{ env.PACKAGE_PREFIX_PATTERN }}${{ matrix.package_pattern }}
         artifact-name: ${{ needs.build.outputs.artifact-name }}
         coverage: true
@@ -70,7 +70,7 @@ jobs:
     - name: Cleanup environment
       uses: ./.github/actions/cleanup-env
       with:
-        rm-dirs: 
+        rm-dirs:
           ${{ env.ARTIFACTS_DIR }}
           ${{ env.PYTEST_ROOT_DIR }}
         clean-pipenv: true
