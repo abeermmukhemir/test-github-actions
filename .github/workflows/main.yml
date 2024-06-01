@@ -16,11 +16,12 @@ jobs:
     steps:
       - run: |
           echo "Starting Job ${{github.job}}"
+      - name: Check out repository code
+        uses: actions/checkout@v4
       - name: Setup environment
         id: use-setup-action
         uses: ./.github/actions/setup-env
         with:
-          checkout-code: true
           setup-python: true
           python-version: 3.10
           use-pipenv: true
