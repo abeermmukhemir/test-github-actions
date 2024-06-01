@@ -49,7 +49,7 @@ outputs:
       'artifact name for actions/upload-artifact
       if uploading the artifact is successful, this will be same value as 
       inputs.artifact-name, otherwise the upload had failed'
-  value: ${{ steps.get-artifact-name.outputs.artifact-name }}
+    value: ${{ steps.get-artifact-name.outputs.artifact-name }}
 runs:
 	using: 'composite'
 	steps:
