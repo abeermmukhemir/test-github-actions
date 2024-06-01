@@ -73,20 +73,19 @@ jobs:
         echo "Starting Job ${{github.job}}"
     - name: Check out repository code
       uses: actions/checkout@v4
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v5
+    - name: Setup environment
+      id: use-setup-action
+      uses: ./.github/actions/setup-env
       with:
-        python-version: "3.10"
-    - name: Install main dependencies
+        setup-python: true
+        python-version: '3.10'
+        use-pipenv: true
+        python-dependencies:
+          pytest
+          coverage
+    - name: Debug outputs from ./.github/actions/setup-env
       run: |
-        python3 -m pip install --upgrade pip
-        python3 -m pip install pipenv
-    - name: Setup Python virtual environment
-      run: |
-        pipenv install
-    - name: Install job specific dependencies
-      run: |
-        pipenv install pytest coverage
+        echo '${{ toJson(steps.use-setup-action.outputs) }}'
     - name: Download artifacts to test
       uses: actions/download-artifact@v4
       with:
