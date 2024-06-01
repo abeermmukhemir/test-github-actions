@@ -53,7 +53,7 @@ outputs:
 runs:
   using: 'composite'
   steps:
-      name: Setup environment
+    - name: Setup environment
 			id: use-setup-action
 			uses: ./.github/actions/setup-env
 			with:
