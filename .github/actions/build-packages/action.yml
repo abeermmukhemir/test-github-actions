@@ -51,14 +51,8 @@ outputs:
       inputs.artifact-name, otherwise the upload had failed'
     value: ${{ steps.get-artifact-name.outputs.artifact-name }}
 runs:
-	using: 'composite'
-	steps:
-    - name: debug working dir
-      run: |
-        echo "pwd=$(pwd)"
-        echo "action_path=${{ github.action_path }}"
-      shell: bash
-		- if: 'false'
+  using: 'composite'
+  steps:
       name: Setup environment
 			id: use-setup-action
 			uses: ./.github/actions/setup-env
