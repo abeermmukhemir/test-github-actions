@@ -58,7 +58,8 @@ runs:
         echo "pwd=$(pwd)"
         echo "action_path=${{ github.action_path }}"
       shell: bash
-		- name: Setup environment
+		- if: 'false'
+      name: Setup environment
 			id: use-setup-action
 			uses: ./.github/actions/setup-env
 			with:
