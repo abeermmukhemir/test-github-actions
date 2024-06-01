@@ -86,24 +86,24 @@ runs:
     - if: ${{ inputs.setup-python == 'true' }}
       name: Upgrade pip
       run: |
-        $python-exec -m pip install --upgrade pip
+        $python_exec -m pip install --upgrade pip
       shell: bash
       env:
-        python-exec:  ${{ steps.setup-python-action.outputs.python-path }}
+        python_exec:  ${{ steps.setup-python-action.outputs.python-path }}
     - if: ${{ inputs.python-dependencies != '' && inputs.use-pipenv == 'false' }}
       name: Install Python dependencies with pip
       run: |
-        $python-exec -m pip install ${{ inputs.python-dependencies }}
+        $python_exec -m pip install ${{ inputs.python-dependencies }}
       shell: bash
       env:
-        python-exec:  ${{ steps.setup-python-action.outputs.python-path }}
+        python_exec:  ${{ steps.setup-python-action.outputs.python-path }}
     - if: ${{ inputs.use-pipenv == 'true' }}
       name: Install pipenv
       run: |
-        $python-exec -m pip install pipenv
+        $python_exec -m pip install pipenv
       shell: bash
       env:
-        python-exec:  ${{ steps.setup-python-action.outputs.python-path }}
+        python_exec:  ${{ steps.setup-python-action.outputs.python-path }}
     - if: ${{ inputs.python-dependencies != '' && inputs.use-pipenv == 'true' }}
       name: Setup Python virtual environment using pipenv
       id: setup-pipenv
