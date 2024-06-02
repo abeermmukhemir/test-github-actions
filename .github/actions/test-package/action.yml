@@ -2,28 +2,34 @@ name: test-package
 description: |
   Test Python app package.
   Will do:
-    - setup needed environment for test
+    - setup the needed environment for test
     - download artifact for test
-      (expects .whl, .tar.gz, or any extension accepted py pip)
     - install downloaded packages into environment
+      (expects .whl, .tar.gz, or any extension accepted py pip)
     - run pytest and coverage
   depends on  ./.github/actions/setup-env
 inputs:
   app-test-dir:
     description: |
       'directory that contains tests
-      default is current working directory'
+      default is current working directory.'
     required: false
     default: '.'
   pytest-root-dir:
     description: |
       'root directory for pytest command
-      default is current working directory'
+      default is current working directory.'
     required: false
     default: '.'
+  artifact-name:
+    description: |
+      'artifact name for actions/download-artifact.
+      required, if not specified the action will fail.'
+    required: true
+    default: ''
   artifacts-dir:
     description: |
-      'artifact directory that will contain downloaded artifacts'
+      'artifacts directory that will contain downloaded artifacts.'
     required: false
     default: './artifacts'
   package-name-pattern:
@@ -33,19 +39,12 @@ inputs:
       examples:
         package-name-pattern: app-*.whl
         package-name-pattern: app-[0-9].[0-9]*.tar.gz
-      required, if not specified action will fail
-      '
-    required: true
-    default: ''
-  artifact-name:
-    description: |
-      'artifact name for actions/download-artifact
-      required, if not specified the action will fail'
+      required, if not specified action will fail.'
     required: true
     default: ''
   coverage:
     description: |
-      'whether to run code coverage'
+      'whether to run code coverage.'
     required: false
     default: false
   # the tests in this action run on installed package rather than the
@@ -68,7 +67,7 @@ inputs:
     description: |
       'the importable name for the package to use as
       a --source for coverage command.
-      though this is optional it is important'
+      though this is optional it is important.'
     required: false
     default: ''
 runs:
@@ -84,7 +83,7 @@ runs:
         python-dependencies:
           pytest
           coverage
-    - name: Debug outputs from ./.github/actions/setup-env
+    - name: "Debug: outputs from ./.github/actions/setup-env"
       run: |
         echo '${{ toJson(steps.use-setup-action.outputs) }}'
       shell: bash
@@ -101,7 +100,7 @@ runs:
       with:
         name: ${{ inputs.artifact-name }}
         path: ${{ inputs.artifacts-dir }}
-    - name: List downloaded artifacts
+    - name: "Debug: List downloaded artifacts"
       run: |
         ls -R ${{ inputs.artifacts-dir }}
       shell: bash
@@ -113,10 +112,11 @@ runs:
       shell: bash
     - name: Fail if there is no matching package in artifacts dir
       run: |
-        if ! ls ${{ inputs.artifacts-dir }}/${{ inputs.package-name-pattern }} ;
-        then echo \
-          "ERROR: no matching ${{ inputs.package-name-pattern }} package in dir ${{ inputs.artifacts-dir }}" 1>&2 ;
-          exit 1 ;
+        if ! ls ${{ inputs.artifacts-dir }}/${{ inputs.package-name-pattern }};
+        then \
+          echo "ERROR: no matching ${{ inputs.package-name-pattern }} package \
+            in dir ${{ inputs.artifacts-dir }}" 1>&2;
+          exit 1;
         fi
       shell: bash
     # if we're here, then inputs.package-name-pattern is available

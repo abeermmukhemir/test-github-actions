@@ -1,5 +1,6 @@
 name: build-pipeline
-run-name: Run ${{github.run_number}} on ref ${{github.ref_name}}, user ${{ github.actor }}
+run-name: |
+  Run ${{ github.run_number }} on ${{ github.ref_name }} by ${{ github.actor }}
 on:
   push
 env:
@@ -11,11 +12,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      APP_SRC_DIR: ${{ github.workspace }}/src/$APP_NAME
       BUILD_DIST_DIR: ${{ github.workspace }}/build-artifacts
     steps:
       - run: |
-          echo "Starting Job ${{github.job}}"
+          echo "Starting Job ${{ github.job }}"
       - name: Check out repository code
         uses: actions/checkout@v4
       - name: Build Python packages
@@ -25,17 +25,19 @@ jobs:
           app-src-dir: ${{ env.APP_SRC_DIR }}
           build-output-dir: ${{ env.BUILD_DIST_DIR }}
           package-name-patterns: |
-            ${{ env.PACKAGE_COMMON_PATTERN }}*.whl
-            ${{ env.PACKAGE_COMMON_PATTERN }}*.tar.gz
+            ${{ env.package_common_pattern }}*.whl
+            ${{ env.package_common_pattern }}*.tar.gz
         env:
-          PACKAGE_COMMON_PATTERN: ${{ env.BUILD_DIST_DIR }}/${{ env.PACKAGE_PREFIX_PATTERN }}
+          APP_SRC_DIR: ${{ github.workspace }}/src/${{ env.APP_NAME }}
+          package_common_pattern: |
+            ${{ env.BUILD_DIST_DIR }}/${{ env.PACKAGE_PREFIX_PATTERN }}
       - name: Cleanup environment
         uses: ./.github/actions/cleanup-env
         with:
           rm-dirs: ${{ env.BUILD_DIST_DIR }}
           clean-pipenv: true
       - run: |
-          echo "Job ${{github.job}} finished with status ${{ job.status }}."
+          echo "Job ${{ github.job }} finished with status ${{ job.status }}."
     outputs:
       artifact-name: ${{ steps.build-packages-action.outputs.artifact-name }}
 
@@ -47,12 +49,11 @@ jobs:
       matrix:
         package_pattern: ["*.whl", "*.tar.gz"]
     env:
-      APP_TEST_DIR: ${{ github.workspace }}/src/pytest
       ARTIFACTS_DIR: ${{ github.workspace }}/artifacts
       PYTEST_ROOT_DIR: ${{ github.workspace }}/pytest-root
     steps:
     - run: |
-        echo "Starting Job ${{github.job}}"
+        echo "Starting Job ${{ github.job }}"
     - name: Check out repository code
       uses: actions/checkout@v4
     - name: Test Python package
@@ -67,6 +68,8 @@ jobs:
         artifact-name: ${{ needs.build.outputs.artifact-name }}
         coverage: true
         coverage-importable-name: hello
+      env:
+        APP_TEST_DIR: ${{ github.workspace }}/src/pytest
     - name: Cleanup environment
       uses: ./.github/actions/cleanup-env
       with:
@@ -75,4 +78,4 @@ jobs:
           ${{ env.PYTEST_ROOT_DIR }}
         clean-pipenv: true
     - run: |
-        echo "Job ${{github.job}} finished with status ${{ job.status }}."
+        echo "Job ${{ github.job }} finished with status ${{ job.status }}."

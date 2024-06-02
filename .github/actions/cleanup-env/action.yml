@@ -1,26 +1,28 @@
 name: cleanup-env
 description: cleanup environment
+# TODO: separate uninstalling packages in virtual environment from clearing
+# it completely, that would be useful for partial cleanup
 inputs:
   rm-dirs:
     description: |
-      'list of directories to remove, eg: caches and build dirs'
+      'list of directories to remove, eg: caches and build dirs.'
     required: false
     default: ''
   # clear-pip-cache : (bool) optional, whether to clear pip cache or skip.
   clear-pip-cache:
     description: |
-      'whether to clear/purge pip cache or skip, default false'
+      'whether to clear/purge pip cache or skip, default false.'
     required: false
     default: false
   uninstall-pip-packages:
     description: |
-      'list of pip packages to uninstall'
+      'list of pip packages to uninstall.'
     required: false
     default: ''
   python-interpreter:
     description: |
       'path for python interpreter.
-      if not specified, will use default in the system'
+      if not specified, will use default in the system.'
     required: false
     default: 'python'
   # clean-pipenv : (bool) optional, whether to clean pipenv virtual
@@ -29,7 +31,7 @@ inputs:
   # pipenv cache will be cleared and the virtual environment will be removed.
   clean-pipenv:
     description: |
-      'whether to clean pipenv virtual environment or skip, default false'
+      'whether to clean pipenv virtual environment or skip, default false.'
     required: false
     default: false
 runs:
