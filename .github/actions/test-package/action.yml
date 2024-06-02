@@ -1,0 +1,155 @@
+name: test-package
+description: |
+  Test Python app package.
+  Will do:
+    - setup the needed environment for test
+    - download artifact for test
+    - install downloaded packages into environment
+      (expects .whl, .tar.gz, or any extension accepted py pip)
+    - run pytest and coverage
+  depends on  ./.github/actions/setup-env
+inputs:
+  app-test-dir:
+    description: |
+      'directory that contains tests
+      default is current working directory.'
+    required: false
+    default: '.'
+  pytest-root-dir:
+    description: |
+      'root directory for pytest command
+      default is current working directory.'
+    required: false
+    default: '.'
+  artifact-name:
+    description: |
+      'artifact name for actions/download-artifact.
+      required, if not specified the action will fail.'
+    required: true
+    default: ''
+  artifacts-dir:
+    description: |
+      'artifacts directory that will contain downloaded artifacts.'
+    required: false
+    default: './artifacts'
+  package-name-pattern:
+    description: |
+      'the pattern to identify package file which will be tested,
+      relative to artifacts-dir.
+      examples:
+        package-name-pattern: app-*.whl
+        package-name-pattern: app-[0-9].[0-9]*.tar.gz
+      required, if not specified action will fail.'
+    required: true
+    default: ''
+  coverage:
+    description: |
+      'whether to run code coverage.'
+    required: false
+    default: false
+  # the tests in this action run on installed package rather than the
+  # local source code, this behavior is better for action reusability,
+  # specially for cases where source code and test code are in different repos.
+  # because of that we need to explicitly pass a list of importable names(packages)
+  # to the coverage command in order to include the package we're testing,
+  # see about "coverage run --source" for details.
+  # example:
+  #   if the structure of our package code directory as follows:
+  #     hello-app/
+  #     ├── README.md
+  #     ├── hello
+  #     │   ├── __init__.py
+  #     │   ├── app.py
+  #     │   ├── ...
+  #     └── pyproject.toml
+  #   then coverage-importable-name=hello
+  coverage-importable-name:
+    description: |
+      'the importable name for the package to use as
+      a --source for coverage command.
+      though this is optional it is important.'
+    required: false
+    default: ''
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup environment
+      id: use-setup-action
+      uses: ./.github/actions/setup-env
+      with:
+        setup-python: true
+        python-version: '3.10'
+        use-pipenv: true
+        python-dependencies:
+          pytest
+          coverage
+    - name: "Debug: outputs from ./.github/actions/setup-env"
+      run: |
+        echo '${{ toJson(steps.use-setup-action.outputs) }}'
+      shell: bash
+    - if: ${{ inputs.artifact-name == '' }}
+      name: Fail if inputs.artifact-name is not available
+      run: |
+        echo "ERROR: missing required input: artifact-name" 1>&2
+        exit 1
+      shell: bash
+    # if we're here, then inputs.artifact-name is available
+    # and we should be able to continue
+    - name: Download artifacts to test
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.artifacts-dir }}
+    - name: "Debug: List downloaded artifacts"
+      run: |
+        ls -R ${{ inputs.artifacts-dir }}
+      shell: bash
+    - if: ${{ inputs.package-name-pattern == '' }}
+      name: Fail if inputs.package-name-pattern is not available
+      run: |
+        echo "ERROR: missing required input: package-name-pattern" 1>&2
+        exit 1
+      shell: bash
+    - name: Fail if there is no matching package in artifacts dir
+      run: |
+        if ! ls ${{ inputs.artifacts-dir }}/${{ inputs.package-name-pattern }};
+        then \
+          echo "ERROR: no matching ${{ inputs.package-name-pattern }} package \
+            in dir ${{ inputs.artifacts-dir }}" 1>&2;
+          exit 1;
+        fi
+      shell: bash
+    # if we're here, then inputs.package-name-pattern is available
+    # and exists in inputs.artifacts-dir, so we should be able to continue
+    - name: Install app package into pipenv
+      run: |
+        pipenv install ${{ inputs.artifacts-dir }}/${{ inputs.package-name-pattern }}
+      shell: bash
+    - name: Get pytest command
+      id: get-pytest-command
+      run: |
+        echo "pytest-command=${{ env.pytest_command }}" >> $GITHUB_OUTPUT
+      shell: bash
+      env:
+        pytest_command: |
+          pytest -v --cache-clear --rootdir ${{ inputs.pytest-root-dir }} \
+            ${{ inputs.app-test-dir }}
+    - if: ${{ inputs.coverage == 'false' }}
+      name: Run pytest
+      run: |
+        mkdir ${{ inputs.pytest-root-dir }}
+        pipenv run ${{ steps.get-pytest-command.outputs.pytest-command }}
+      shell: bash
+    - if: ${{ inputs.coverage == 'true' }}
+      name: Run pytest with coverage
+      run: |
+        mkdir ${{ inputs.pytest-root-dir }}
+        pipenv run coverage run --branch \
+          --source=${{ inputs.coverage-importable-name }} -m \
+            ${{ steps.get-pytest-command.outputs.pytest-command }}
+      shell: bash
+    - if: ${{ inputs.coverage == 'true' }}
+      name: Show coverage report
+      run: |
+        pipenv run coverage report
+      shell: bash

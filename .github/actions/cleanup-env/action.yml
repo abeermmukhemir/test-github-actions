@@ -1,0 +1,61 @@
+name: cleanup-env
+description: cleanup environment
+# TODO: separate uninstalling packages in virtual environment from clearing
+# it completely, that would be useful for partial cleanup
+inputs:
+  rm-dirs:
+    description: |
+      'list of directories to remove, eg: caches and build dirs.'
+    required: false
+    default: ''
+  # clear-pip-cache : (bool) optional, whether to clear pip cache or skip.
+  clear-pip-cache:
+    description: |
+      'whether to clear/purge pip cache or skip, default false.'
+    required: false
+    default: false
+  uninstall-pip-packages:
+    description: |
+      'list of pip packages to uninstall.'
+    required: false
+    default: ''
+  python-interpreter:
+    description: |
+      'path for python interpreter.
+      if not specified, will use default in the system.'
+    required: false
+    default: 'python'
+  # clean-pipenv : (bool) optional, whether to clean pipenv virtual
+  # environment or skip.
+  # if true all packages in the virtual environment will be uninstalled,
+  # pipenv cache will be cleared and the virtual environment will be removed.
+  clean-pipenv:
+    description: |
+      'whether to clean pipenv virtual environment or skip, default false.'
+    required: false
+    default: false
+runs:
+  using: 'composite'
+  steps:
+    - if: ${{ inputs.rm-dirs != '' }}
+      name: Remove directories ${{ inputs.rm-dirs }}
+      run: |
+        rm -rf ${{ inputs.rm-dirs }}
+      shell: bash
+    - if: ${{ inputs.clean-pipenv == 'true' }}
+      name: Cleaning pipenv cache and virtual environment
+      run: |
+        pipenv uninstall --all --clear
+        pipenv --rm
+      shell: bash
+    - if: ${{ inputs.uninstall-pip-packages != '' }}
+      name: Uninstalling packages ${{ inputs.uninstall-pip-packages }}
+      run: |
+        ${{ inputs.python-interpreter }} -m pip uninstall \
+          -y --no-input ${{ inputs.uninstall-pip-packages }}
+      shell: bash
+    - if: ${{ inputs.clear-pip-cache == 'true' }}
+      name: Purging pip cache
+      run: |
+        ${{ inputs.python-interpreter }} -m pip cache purge
+      shell: bash

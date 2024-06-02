@@ -1,0 +1,132 @@
+name: setup-env
+description: setup needed running for each job
+# TODO: Add an input for specifying the python executable to use, that
+# would be useful in case where python is being setup externally,
+# for example when using custom binaries, unsupported versions,
+# or custom installation path. it would make this action useful for just
+# setting up the virtual environment and/or downloading dependencies.
+inputs:
+    # checkout-code : (bool) optional, if true the action will checkout the
+    # repository code using actions/checkout, this will be the first step.
+    # if set to false, the checkout step will be skipped.
+    # if this action is being called from this repository the checkout needs
+    # to be done before calling the action and so checkout-code wouldn't be needed.
+    checkout-code:
+      description: |
+        'whether to checkout repository code or skip, default false.'
+      required: false
+      default: false
+    # setup-python : (bool) optional, whether to setup python or skip.
+    setup-python:
+      description: |
+        'whether to setup python or skip, default false.'
+      required: false
+      default: false
+    # python-version : optional, python version to pass on to actions/setup-python.
+    # this will be passed as is to actions/setup-python i.e. expected behavior is
+    # same as actions/setup-python.
+    # requires setup-python to be true.
+    python-version:
+      description: |
+        python version to pass (as is) on to actions/setup-python.
+        requires setup-python to be true.
+      required: false
+    # use-pipenv : (bool) optional, whether to install pipenv and create virtual
+    # environment or skip.
+    # if true the virtual environment will be created for the current working directory.
+    # requires setup-python to be true
+    use-pipenv:
+      description: |
+        'whether to install pipenv and create virtual environment or skip,
+        default false.
+        requires setup-python to be true.'
+      required: false
+      default: false
+    # python-dependencies : optional, list of optional python dependencies to install,
+    # if use-pipenv is set to true, the dependencies will be installed in the created
+    # virtual environment, else will be installed globally using pip.
+    # requires setup-python to be true
+    python-dependencies:
+      description: |
+        'list of optional python dependencies to install.
+        requires setup-python to be true.'
+      required: false
+      default: ''
+outputs:
+  # from actions/setup-python outputs
+  # requires setup-python to be true.
+  python-version:
+    description: |
+      'The installed Python version. Useful when given a version range as input.'
+    value: ${{ steps.setup-python-action.outputs.python-version }}
+  # from actions/setup-python outputs
+  # requires setup-python to be true.
+  global-python-path:
+    description: |
+      'The absolute path to the global Python executable.'
+    value: ${{ steps.setup-python-action.outputs.python-path }}
+  # pipenv-python-path : i.e. output from $(pipenv --py)
+  # requires use-pipenv to be true.
+  pipenv-python-path:
+    description: |
+      'The absolute path to the pipenv virtual environment Python executable.'
+    value: ${{ steps.setup-pipenv.outputs.pipenv-python-path }}
+  # pipenv-venv-path : i.e. output from $(pipenv --venv)
+  # requires use-pipenv to be true.
+  pipenv-venv-path:
+    description: |
+      'The absolute path to the pipenv virtual environment.'
+    value: ${{ steps.setup-pipenv.outputs.pipenv-venv-path }}
+  # pipenv-project-path : i.e. output from $(pipenv --where)
+  # requires use-pipenv to be true.
+  pipenv-project-path:
+    description: |
+      'The absolute path to the pipenv project dir.'
+    value: ${{ steps.setup-pipenv.outputs.pipenv-project-path }}
+runs:
+  using: 'composite'
+  steps:
+    - if: ${{ inputs.checkout-code == 'true' }}
+      name: Check out repository code
+      uses: actions/checkout@v4
+    - if: ${{ inputs.setup-python == 'true' }}
+      name: Set up Python ${{ inputs.python-version }}
+      id: setup-python-action
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+    - if: ${{ inputs.setup-python == 'true' }}
+      name: Upgrade pip
+      run: |
+        $python_exec -m pip install --upgrade pip
+      shell: bash
+      env:
+        python_exec:  ${{ steps.setup-python-action.outputs.python-path }}
+    - if: ${{ inputs.python-dependencies != '' && inputs.use-pipenv == 'false' }}
+      name: Install Python dependencies with pip
+      run: |
+        $python_exec -m pip install ${{ inputs.python-dependencies }}
+      shell: bash
+      env:
+        python_exec:  ${{ steps.setup-python-action.outputs.python-path }}
+    - if: ${{ inputs.use-pipenv == 'true' }}
+      name: Install pipenv
+      run: |
+        $python_exec -m pip install pipenv
+      shell: bash
+      env:
+        python_exec:  ${{ steps.setup-python-action.outputs.python-path }}
+    - if: ${{ inputs.python-dependencies != '' && inputs.use-pipenv == 'true' }}
+      name: Setup Python virtual environment using pipenv
+      id: setup-pipenv
+      run: |
+        pipenv install
+        echo "pipenv-python-path=$(pipenv --py)" >> $GITHUB_OUTPUT
+        echo "pipenv-venv-path=$(pipenv --venv)" >> $GITHUB_OUTPUT
+        echo "pipenv-project-path=$(pipenv --where)" >> $GITHUB_OUTPUT
+      shell: bash
+    - if: ${{ inputs.use-pipenv == 'true' }}
+      name: Install Python dependencies with pipenv
+      run: |
+        pipenv install ${{ inputs.python-dependencies }}
+      shell: bash
