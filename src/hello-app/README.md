@@ -31,7 +31,7 @@ $ curl -X GET http://127.0.0.1:5000/hello/
 Hello there!
 
 # or
-p$ curl -X GET http://127.0.0.1:5000/hello-json/
+$ curl -X GET http://127.0.0.1:5000/hello-json/
 {
   "message": "Hello there!"
 }

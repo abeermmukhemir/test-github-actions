@@ -12,6 +12,33 @@ PORT_ARG_DEFAULT = "5000"
 PORT_ARG_HELP = f"Port number for the server. Defaults to {PORT_ARG_DEFAULT}"
 
 
+def _define_parser() -> argparse.ArgumentParser:
+    """Defines the arguments parse and the accepted arguments
+
+    Returns:
+        argparse.ArgumentParser: reference to the defined parser
+    """
+    parser = argparse.ArgumentParser(prog=APP_NAME, description=PROG_STR)
+    parser.add_argument("-v", "--version", action='version',
+                        version=APP_VERSION, help=VERSION_ARG_HELP)
+    sub_parsers = parser.add_subparsers(required=True)
+    run_parser = sub_parsers.add_parser("run", help=RUN_ACTION_HELP,
+                                        description=RUN_ACTION_HELP)
+    run_parser.add_argument("--host", type=str,
+                            default=HOST_ARG_DEFAULT, help=HOST_ARG_HELP)
+    run_parser.add_argument("--port", type=str,
+                            default=PORT_ARG_DEFAULT, help=PORT_ARG_HELP)
+
+    return parser
+
+
+def get_usage_message() -> str:
+    """Returns the help message for the cli
+    """
+    parser = _define_parser()
+    return parser.format_help()
+
+
 def parse_args(args_list: list) -> dict:
     """Parse provided arguments for the application
 
@@ -24,18 +51,7 @@ def parse_args(args_list: list) -> dict:
         (dict): If parsing is successful a dict is returned with the keys being:
                 host (str), port (str)
     """
-
-    parser = argparse.ArgumentParser(prog=APP_NAME, description=PROG_STR)
-    parser.add_argument("-v", "--version", action='version',
-                        version=APP_VERSION, help=VERSION_ARG_HELP)
-    sub_parsers = parser.add_subparsers(required=True)
-    run_parser = sub_parsers.add_parser("run", help=RUN_ACTION_HELP,
-                                        description=RUN_ACTION_HELP)
-    run_parser.add_argument("--host", type=str,
-                            default=HOST_ARG_DEFAULT, help=HOST_ARG_HELP)
-    run_parser.add_argument("--port", type=str,
-                            default=PORT_ARG_DEFAULT, help=PORT_ARG_HELP)
-
+    parser = _define_parser()
     args = parser.parse_args(args_list)
     args = {
         "host": args.host,
