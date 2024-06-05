@@ -27,7 +27,3 @@ def main(args: list | None = None):
 
     server.register_routes()
     server.run()
-
-
-if __name__ == "__main__":
-    main()
