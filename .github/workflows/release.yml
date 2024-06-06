@@ -35,16 +35,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.commit-sha }}
-      - name: Create new release branch release/v${{ inputs.version }}
-        run: |
-          git checkout -B release/v${{ inputs.version }} ${{ inputs.commit-sha }}
-          git push origin release/v${{ inputs.version }}
-      - name: Create release draft
-        run: |
-          gh release create v${{ inputs.version }} --generate-notes -d \
-            --target release/v${{ inputs.version }}
-        env:
-          GH_TOKEN: ${{ github.token }}
       # prepare assets
       - if: ${{ needs.build-pipeline.outputs.artifact-name == '' }}
         name: Fail if artifact-name is not available
@@ -79,8 +69,18 @@ jobs:
             ${{ format('{0}/{{{1}}}', env.ASSETS_DIR,
             join(fromJSON(needs.build-pipeline.outputs.package-name-patterns),
             ',')) }}
-        # if we here, then there are matching packages, we can go ahead and upload
-        # them to the release
+        # if we here, then there are matching packages, we can go ahead and
+        # create the release
+      - name: Create new release branch release/v${{ inputs.version }}
+        run: |
+          git checkout -b release/v${{ inputs.version }} ${{ inputs.commit-sha }}
+          git push origin release/v${{ inputs.version }}
+      - name: Create release draft
+        run: |
+          gh release create v${{ inputs.version }} --generate-notes -d \
+            --target release/v${{ inputs.version }}
+        env:
+          GH_TOKEN: ${{ github.token }}
       - name: Upload assets
         run: |
           gh release upload v${{ inputs.version }} \
