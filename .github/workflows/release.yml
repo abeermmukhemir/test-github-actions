@@ -14,7 +14,7 @@ on:
         type: string
         default: main
 permissions:
-  contents: write
+  contents: read
 jobs:
   build-pipeline:
     uses: ./.github/workflows/build-pipeline.yml
@@ -24,6 +24,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     needs: build-pipeline
+    permissions:
+      contents: write
     env:
       ASSETS_DIR: ${{ github.workspace }}/assets
     steps:
