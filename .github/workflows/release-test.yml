@@ -3,8 +3,8 @@ run-name: |
   Run ${{ github.run_number }} on ${{ github.ref_name }} by ${{ github.actor }}
 on:
   push
-permissions:
-  contents: read
+# permissions:
+#   contents: read
 jobs:
   release-pipeline:
     uses: ./.github/workflows/release.yml
