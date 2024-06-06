@@ -86,7 +86,7 @@ jobs:
           gh release upload v${{ inputs.version }} \
             ${{ env.assets-patterns }} --clobber
         env:
-          assets-patterns: |
+          assets-patterns: |-
             ${{ format('{0}/{{{1}}}', env.ASSETS_DIR,
             join(fromJSON(needs.build-pipeline.outputs.package-name-patterns),
             ',')) }}
