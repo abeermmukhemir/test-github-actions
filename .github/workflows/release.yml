@@ -12,7 +12,7 @@ on:
         description: 'target commit SHA'
         required: false
         type: string
-        default: HEAD
+        default: HEAD^
 permissions:
   contents: read
 jobs:
