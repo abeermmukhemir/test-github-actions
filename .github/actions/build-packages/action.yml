@@ -128,5 +128,5 @@ runs:
           sed 's/[[:space:]]/\", \"/')"
         echo "package-name-patterns="[\"${full_patterns}\"]"" \
           >> $GITHUB_OUTPUT
-        echo "package-name-patterns="[\"${full_patterns}\"]""
+        echo "package-name-patterns="[\"${full_patterns// }\"]""
       shell: bash
