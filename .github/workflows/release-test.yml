@@ -9,5 +9,5 @@ jobs:
   release-pipeline:
     uses: ./.github/workflows/release.yml
     with:
-      # commit-sha: 4c6aedf80c0c181cf4701897d5f5c4329bbf6af0
+      commit-sha: ''
       version: '0.1'

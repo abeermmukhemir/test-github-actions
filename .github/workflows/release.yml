@@ -12,7 +12,7 @@ on:
         description: 'target commit SHA, defaults to top of default branch'
         required: false
         type: string
-        default: ''
+        default: main
 permissions:
   contents: read
 jobs:
@@ -40,6 +40,8 @@ jobs:
         run: |
           gh release create v${{ inputs.version }} --generate-notes -d \
             --target HEAD
+        env:
+          GH_TOKEN: ${{ github.token }}
       # prepare assets
       - if: ${{ needs.build-pipeline.outputs.artifact-name == '' }}
         name: Fail if artifact-name is not available
