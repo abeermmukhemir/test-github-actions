@@ -9,10 +9,10 @@ on:
         required: true
         type: string
       commit-sha:
-        description: 'target commit SHA'
+        description: 'target commit SHA, defaults to top of default branch'
         required: false
         type: string
-        default: HEAD^
+        default: ''
 permissions:
   contents: read
 jobs:
