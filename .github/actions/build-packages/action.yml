@@ -124,7 +124,7 @@ runs:
       id: get-package-name-patterns
       run: |
         full_patterns="$(echo '${{ inputs.package-name-patterns }}' | \
-          tr -s '\n' | tr '\n' ' ' | \
+          tr -s '\n' | tr '\n' ' ' | tr -s ' ' | \
           sed 's/[[:space:]]/\", \"/')"
         echo "package-name-patterns="[\"${full_patterns}\"]"" \
           >> $GITHUB_OUTPUT
