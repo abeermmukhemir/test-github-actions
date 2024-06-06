@@ -2,7 +2,7 @@ name: release-pipeline
 run-name: |
   Run ${{ github.run_number }} on ${{ github.ref_name }} by ${{ github.actor }}
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       version:
         description: 'Release version'
@@ -13,9 +13,6 @@ on:
         required: false
         type: string
         default: HEAD
-env:
-  APP_NAME: hello-app
-  PACKAGE_PREFIX_PATTERN: hello_app-[0-9].[0-9]
 permissions:
   contents: read
 jobs:
