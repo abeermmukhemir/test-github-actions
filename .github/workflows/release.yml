@@ -38,6 +38,7 @@ jobs:
       - name: Create new release branch release/v${{ inputs.version }}
         run: |
           git checkout -B release/v${{ inputs.version }} ${{ inputs.commit-sha }}
+          git push origin release/v${{ inputs.version }}
       - name: Create release draft
         run: |
           gh release create v${{ inputs.version }} --generate-notes -d \
@@ -50,7 +51,7 @@ jobs:
         run: |
           echo "ERROR: missing required value: artifact-name" 1>&2
           exit 1
-      # if we're here, then artifact-name is available and we should 
+      # if we're here, then artifact-name is available and we should
       # be able to continue
       - name: Download artifacts to test
         uses: actions/download-artifact@v4
@@ -76,18 +77,18 @@ jobs:
         env:
           assets-patterns: |
             ${{ format('{0}/{{{1}}}', env.ASSETS_DIR,
-            join(fromJSON(needs.build-pipeline.outputs.package-name-patterns), 
+            join(fromJSON(needs.build-pipeline.outputs.package-name-patterns),
             ',')) }}
         # if we here, then there are matching packages, we can go ahead and upload
         # them to the release
       - name: Upload assets
         run: |
           gh release upload v${{ inputs.version }} \
-            ${{ env.assets-patterns }} --clobber 
+            ${{ env.assets-patterns }} --clobber
         env:
           assets-patterns: |
             ${{ format('{0}/{{{1}}}', env.ASSETS_DIR,
-            join(fromJSON(needs.build-pipeline.outputs.package-name-patterns), 
+            join(fromJSON(needs.build-pipeline.outputs.package-name-patterns),
             ',')) }}
       - name: Cleanup environment
         uses: ./.github/actions/cleanup-env
