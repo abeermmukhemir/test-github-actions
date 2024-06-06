@@ -14,7 +14,7 @@ on:
         type: string
         default: main
 permissions:
-  contents: read
+  contents: write
 jobs:
   build-pipeline:
     uses: ./.github/workflows/build-pipeline.yml
