@@ -75,7 +75,7 @@ jobs:
             exit 1;
           fi
         env:
-          assets-patterns: |
+          assets-patterns: |-
             ${{ format('{0}/{{{1}}}', env.ASSETS_DIR,
             join(fromJSON(needs.build-pipeline.outputs.package-name-patterns),
             ',')) }}
