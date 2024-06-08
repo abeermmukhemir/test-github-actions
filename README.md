@@ -1,3 +1,6 @@
+[![build-pipeline](https://github.com/abeermmukhemir/test-github-actions/actions/workflows/build-pipeline.yml/badge.svg)](https://github.com/abeermmukhemir/test-github-actions/actions/workflows/build-pipeline.yml)
+[![release-pipeline](https://github.com/abeermmukhemir/test-github-actions/actions/workflows/release.yml/badge.svg)](https://github.com/abeermmukhemir/test-github-actions/actions/workflows/release.yml)
+
 # test-github-actions
 This is a personal project to learn and test what can be done with [Github Actions](https://docs.github.com/en/actions).
 The goal is to build a basic CI/CD pipeline, that will include build, test, package, and deploy stages. these stages are performed on a simple "hello world" web app written in python.
