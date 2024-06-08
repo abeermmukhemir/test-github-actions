@@ -3,7 +3,7 @@
 This is a simple hello-world Python flask web app.
 
 ## Download and Install
-Get the latest release from (here)[]. Download either the `*.tar.gz` or the `*.whl` package.
+Get the [latest release](https://github.com/abeermmukhemir/test-github-actions/releases). Download either the `*.tar.gz` or the `*.whl` package.
 Install using pip, for example:
 ```shell
 $ python3 -m pip install hello_app-0.1.tar.gz
