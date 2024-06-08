@@ -26,7 +26,7 @@ on:
           'artifact name for actions/upload-artifact, actions/download-artifact.
           if the jobs are successful, this will be same value as
           inputs.artifact-name, otherwise either of the jobs had failed.'
-        value: ${{ (jobs.*.result == 'success') && 
+        value: ${{ !contains(jobs.*.result, 'failure') && 
                     jobs.build.outputs.artifact-name || '' }}
       # useful for identifying packaged files for use in different
       # jobs/workflows without the need for hard coding the value everywhere
@@ -38,7 +38,7 @@ on:
           example:
             "["**/app-*.whl","./app-[0-9].[0-9]*.tar.gz"]"
           depends on jobs success, otherwise the value is empty string.'
-        value: ${{ (jobs.*.result == 'success') && 
+        value: ${{ !contains(jobs.*.result, 'failure') && 
                     jobs.build.outputs.package-name-patterns || '' }}
 env:
   APP_NAME: hello-app
