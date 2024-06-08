@@ -1,6 +1,6 @@
 name: build-pipeline
 run-name: >
-  Run ${{ github.run_number }}: ${{ github.event_name }} 
+  Run ${{ github.run_number }}: ${{ github.event_name }}
   on ${{ github.ref_name }} by ${{ github.actor }}
 on:
   push:
@@ -26,7 +26,7 @@ on:
           'artifact name for actions/upload-artifact, actions/download-artifact.
           if the jobs are successful, this will be same value as
           inputs.artifact-name, otherwise either of the jobs had failed.'
-        value: ${{ !contains(jobs.*.result, 'failure') && 
+        value: ${{ !contains(jobs.*.result, 'failure') &&
                     jobs.build.outputs.artifact-name || '' }}
       # useful for identifying packaged files for use in different
       # jobs/workflows without the need for hard coding the value everywhere
@@ -38,7 +38,7 @@ on:
           example:
             "["**/app-*.whl","./app-[0-9].[0-9]*.tar.gz"]"
           depends on jobs success, otherwise the value is empty string.'
-        value: ${{ !contains(jobs.*.result, 'failure') && 
+        value: ${{ !contains(jobs.*.result, 'failure') &&
                     jobs.build.outputs.package-name-patterns || '' }}
 env:
   APP_NAME: hello-app
@@ -70,7 +70,7 @@ jobs:
         env:
           APP_SRC_DIR: ${{ github.workspace }}/src/${{ env.APP_NAME }}
           artifact-name: |
-            ${{ inputs.artifact-name && inputs.artifact-name || 
+            ${{ inputs.artifact-name && inputs.artifact-name ||
             format('dev-packages-run-{0}', github.run_number) }}
       - name: Cleanup environment
         uses: ./.github/actions/cleanup-env
