@@ -1,0 +1,103 @@
+name: release-pipeline
+run-name: >
+  Run ${{ github.run_number }}: ${{ github.event_name }}
+  on ${{ github.ref_name }} by ${{ github.actor }}
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+        type: string
+      commit-sha:
+        description: 'target commit SHA, defaults to top of default branch'
+        required: false
+        type: string
+        default: main
+permissions:
+  contents: read
+jobs:
+  build-pipeline:
+    uses: ./.github/workflows/build-pipeline.yml
+    with:
+      commit-sha: ${{ inputs.commit-sha }}
+      artifact-name: release-packages-run-${{ github.run_number }}
+  release:
+    runs-on: ubuntu-latest
+    needs: build-pipeline
+    permissions:
+      contents: write
+    env:
+      ASSETS_DIR: ${{ github.workspace }}/assets
+      RELEASE_TAG: v${{ inputs.version }}
+      RELEASE_BRANCH: release/v${{ inputs.version }}
+    steps:
+      - run: |
+          echo "Starting Job ${{ github.job }}"
+      - name: Check out repository code at ${{ inputs.commit-sha }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit-sha }}
+      # prepare assets
+      - if: ${{ needs.build-pipeline.outputs.artifact-name == '' }}
+        name: Fail if artifact-name is not available
+        run: |
+          echo "ERROR: missing required value: artifact-name" 1>&2
+          exit 1
+      # if we're here, then artifact-name is available and we should
+      # be able to continue
+      - name: Download artifacts to test
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-pipeline.outputs.artifact-name }}
+          path: ${{ env.ASSETS_DIR }}
+      - name: "Debug: List downloaded artifacts"
+        run: |
+          ls -R ${{ env.ASSETS_DIR }}
+      - if: ${{ needs.build-pipeline.outputs.package-name-patterns == '' }}
+        name: Fail if package-name-pattern is not available
+        run: |
+          echo "ERROR: missing required value: package-name-pattern" 1>&2
+          exit 1
+      - name: Fail if there is no matching packages
+        run: |
+          if ! ls ${{ env.assets-patterns }};
+          then \
+            echo "ERROR: no matching packages: \
+              ${{ env.assets-patterns }}" 1>&2;
+            exit 1;
+          fi
+        env:
+          assets-patterns: |-
+            ${{ format('{0}/{{{1}}}', env.ASSETS_DIR,
+            join(fromJSON(needs.build-pipeline.outputs.package-name-patterns),
+            ',')) }}
+        # if we here, then there are matching packages, we can go ahead and
+        # create the release
+      - name: Create new release branch ${{ env.RELEASE_BRANCH }}
+        run: |
+          git checkout -b ${{ env.RELEASE_BRANCH }} ${{ inputs.commit-sha }}
+          git push origin ${{ env.RELEASE_BRANCH }}
+      - name: Create release draft
+        run: |
+          gh release create ${{ env.RELEASE_TAG }} --generate-notes -d \
+            --target ${{ env.RELEASE_BRANCH }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Upload assets
+        run: |
+          gh release upload ${{ env.RELEASE_TAG }} \
+            ${{ env.assets-patterns }} --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+          assets-patterns: |-
+            ${{ format('{0}/{{{1}}}', env.ASSETS_DIR,
+            join(fromJSON(needs.build-pipeline.outputs.package-name-patterns),
+            ',')) }}
+      - name: Cleanup environment
+        uses: ./.github/actions/cleanup-env
+        with:
+          rm-dirs:
+            ${{ env.ASSETS_DIR }}
+      - run: |
+          echo "Job ${{ github.job }} finished with status ${{ job.status }}."

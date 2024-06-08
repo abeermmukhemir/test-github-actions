@@ -22,13 +22,14 @@ inputs:
     description: |
       'Output packages patterns, this will be used to upload
       matched packages to artifactory using actions/upload-artifact.
+      the value for this should be relative to build-output-dir.
       for examples:
         package-name-pattern: |
           **/app-*.whl
-          dist/app-[0-9].[0-9]*.tar.gz
+          ./app-[0-9].[0-9]*.tar.gz
       the default is to upload all contents of build-output-dir.'
     required: false
-    default: ''
+    default: '*'
   artifact-name:
     description: |
       'artifact name for actions/upload-artifact.
@@ -49,6 +50,17 @@ outputs:
       if uploading the artifact is successful, this will be same value as
       inputs.artifact-name, otherwise the upload had failed.'
     value: ${{ steps.get-artifact-name.outputs.artifact-name }}
+  # useful for identifying packaged files for use in different
+  # jobs/workflows without the need for hard coding the value everywhere
+  package-name-patterns:
+    description: |
+      'the patterns to identify packaged files which will be used in caller workflows.
+      this would be the same values in inputs.package-name-patterns but formatted
+      as a JSON string.
+      example:
+        "["**/app-*.whl","./app-[0-9].[0-9]*.tar.gz"]"
+      '
+    value: ${{ steps.get-package-name-patterns.outputs.package-name-patterns }}
 runs:
   using: 'composite'
   steps:
@@ -81,20 +93,39 @@ runs:
       run: |
         ls ${{ inputs.build-output-dir }}
       shell: bash
+    - id: get-full-patterns
+      # prepare yourself for the worst hack ever
+      run: |
+        full_patterns="$(echo '${{ inputs.package-name-patterns }}' | \
+          tr -s '\n' | \
+          awk '{print "${{ inputs.build-output-dir }}/"$0}' | \
+          tr '\n' ' ' | \
+          sed 's/[[:space:]]/\", \"/')"
+        echo "full-patterns="[\"${full_patterns}\"]"" >> $GITHUB_OUTPUT
+      shell: bash
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.artifact-name }}
-        path: ${{ env.path_patterns }}
+        path: ${{ env.path-patterns }}
         if-no-files-found: error
         retention-days: ${{ inputs.retention-days }}
         overwrite: true
       env:
-        path_patterns: ${{ inputs.package-name-patterns != '' && 
-                            inputs.package-name-patterns || 
-                            inputs.build-output-dir }}
+        path-patterns: |
+          ${{ join(fromJSON(steps.get-full-patterns.outputs.full-patterns), '
+          ') }}
     - if: ${{ success() }}
       id: get-artifact-name
       run: |
         echo "artifact-name=${{ inputs.artifact-name }}" >> $GITHUB_OUTPUT
+      shell: bash
+    - if: ${{ success() }}
+      id: get-package-name-patterns
+      run: |
+        full_patterns="$(echo '${{ inputs.package-name-patterns }}' | \
+          tr '\n' ' ' | tr -s ' ' | \
+          sed 's/[[:space:]]/\", \"/')"
+        echo "package-name-patterns="[\"${full_patterns// }\"]"" \
+          >> $GITHUB_OUTPUT
       shell: bash
