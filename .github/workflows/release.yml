@@ -1,6 +1,7 @@
 name: release-pipeline
-run-name: |
-  Run ${{ github.run_number }} on ${{ github.ref_name }} by ${{ github.actor }}
+run-name: >
+  Run ${{ github.run_number }}: ${{ github.event_name }} 
+  on ${{ github.ref_name }} by ${{ github.actor }}
 on:
   workflow_call:
     inputs:
@@ -28,6 +29,8 @@ jobs:
       contents: write
     env:
       ASSETS_DIR: ${{ github.workspace }}/assets
+      RELEASE_TAG: v${{ inputs.version }}
+      RELEASE_BRANCH: release/v${{ inputs.version }}
     steps:
       - run: |
           echo "Starting Job ${{ github.job }}"
@@ -71,19 +74,19 @@ jobs:
             ',')) }}
         # if we here, then there are matching packages, we can go ahead and
         # create the release
-      - name: Create new release branch release/v${{ inputs.version }}
+      - name: Create new release branch ${{ env.RELEASE_BRANCH }}
         run: |
-          git checkout -b release/v${{ inputs.version }} ${{ inputs.commit-sha }}
-          git push origin release/v${{ inputs.version }}
+          git checkout -b ${{ env.RELEASE_BRANCH }} ${{ inputs.commit-sha }}
+          git push origin ${{ env.RELEASE_BRANCH }}
       - name: Create release draft
         run: |
-          gh release create v${{ inputs.version }} --generate-notes -d \
-            --target release/v${{ inputs.version }}
+          gh release create ${{ env.RELEASE_TAG }} --generate-notes -d \
+            --target ${{ env.RELEASE_BRANCH }}
         env:
           GH_TOKEN: ${{ github.token }}
       - name: Upload assets
         run: |
-          gh release upload v${{ inputs.version }} \
+          gh release upload ${{ env.RELEASE_TAG }} \
             ${{ env.assets-patterns }} --clobber
         env:
           GH_TOKEN: ${{ github.token }}

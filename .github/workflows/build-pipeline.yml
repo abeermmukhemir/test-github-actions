@@ -1,6 +1,7 @@
 name: build-pipeline
-run-name: |
-  Run ${{ github.run_number }} on ${{ github.ref_name }} by ${{ github.actor }}
+run-name: >
+  Run ${{ github.run_number }}: ${{ github.event_name }} 
+  on ${{ github.ref_name }} by ${{ github.actor }}
 on:
   push:
   workflow_call:
@@ -9,11 +10,11 @@ on:
         description: 'target commit SHA'
         required: false
         type: string
-        default: HEAD
+        default: ''
       artifact-name:
         description: |
           'artifact name for actions/upload-artifact.
-          default: app-packages-run-<run_number>.'
+          default: dev-packages-run-<run_number>.'
         required: false
         type: string
         default: dev-packages-run-${{ github.run_number }}
@@ -22,10 +23,10 @@ on:
       # jobs/workflows without the need for hard coding the value everywhere
       artifact-name:
         description: |
-          'artifact name for actions/upload-artifact.
+          'artifact name for actions/upload-artifact, actions/download-artifact.
           if the jobs are successful, this will be same value as
           inputs.artifact-name, otherwise either of the jobs had failed.'
-        value: ${{ (jobs.build.result == 'success' && jobs.test.result == 'success') && 
+        value: ${{ (jobs.*.result == 'success') && 
                     jobs.build.outputs.artifact-name || '' }}
       # useful for identifying packaged files for use in different
       # jobs/workflows without the need for hard coding the value everywhere
@@ -35,9 +36,9 @@ on:
           relative to artifacts/assets dir
           this will be formatted as a JSON string.
           example:
-            "["**/app-*.whl", "./app-[0-9].[0-9]*.tar.gz"]"
+            "["**/app-*.whl","./app-[0-9].[0-9]*.tar.gz"]"
           depends on jobs success, otherwise the value is empty string.'
-        value: ${{ (jobs.build.result == 'success' && jobs.test.result == 'success') && 
+        value: ${{ (jobs.*.result == 'success') && 
                     jobs.build.outputs.package-name-patterns || '' }}
 env:
   APP_NAME: hello-app

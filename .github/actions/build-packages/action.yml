@@ -58,7 +58,7 @@ outputs:
       this would be the same values in inputs.package-name-patterns but formatted
       as a JSON string.
       example:
-        "["**/app-*.whl", "./app-[0-9].[0-9]*.tar.gz"]"
+        "["**/app-*.whl","./app-[0-9].[0-9]*.tar.gz"]"
       '
     value: ${{ steps.get-package-name-patterns.outputs.package-name-patterns }}
 runs:
