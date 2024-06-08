@@ -68,7 +68,7 @@ jobs:
             ${{ env.PACKAGE_PREFIX_PATTERN }}*.tar.gz
           artifact-name: ${{ env.artifact-name }}
         env:
-          APP_SRC_DIR: ${{ github.workspace }}/src/${{ env.APP_NAME }}
+          APP_SRC_DIR: ${{ github.workspace }}/${{ env.APP_NAME }}
           artifact-name: |
             ${{ inputs.artifact-name && inputs.artifact-name ||
             format('dev-packages-run-{0}', github.run_number) }}
@@ -112,7 +112,7 @@ jobs:
         coverage: true
         coverage-importable-name: hello
       env:
-        APP_TEST_DIR: ${{ github.workspace }}/src/pytest
+        APP_TEST_DIR: ${{ github.workspace }}/tests
     - name: Cleanup environment
       uses: ./.github/actions/cleanup-env
       with:
